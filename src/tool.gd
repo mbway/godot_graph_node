@@ -58,7 +58,7 @@ func make_visible(visible: bool) -> void:  # override
 
 # called when a DiGraph2D node is selected in the editor
 func edit(object: Object) -> void:  # override
-	assert handles(object)
+	assert(handles(object))
 	editing_node = object
 
 func is_editing() -> bool:
