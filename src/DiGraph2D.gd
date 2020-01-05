@@ -1,12 +1,16 @@
 tool
 extends Node2D
-class_name DiGraph2D, "../assets/icon.png"
+
+const PathAlongGraph = preload('PathAlongGraph.gd')
 
 export (String, MULTILINE) var _stored_adjacency = ""
 
 # runtime data
 var _nodes := PoolVector2Array()
 var _adjacency := Array()
+
+const node_color = Color('#ff9999ff')
+const edge_color = Color('#55000000')
 
 # cached data constructed using the above data
 
@@ -25,20 +29,6 @@ class Vertex:
 		pos = set_pos
 
 
-class PathAlongGraph:
-	# pooled arrays are slower for allocating
-	var points: Array
-	var ids: Array
-
-	func _init():
-		points = []
-		ids = []
-
-	func add(pos: Vector2, id: int = -1):
-		points.append(pos)
-		ids.append(id)
-
-
 class ClosestPointOnGraph:
 	var a: int
 	var b: int
@@ -55,10 +45,11 @@ func _ready(): # override
 		visible = false
 	_load_saved_state()  # exported variables not available until added to the tree
 
-# TODO: When the class_name keyword works, remove this workaround
-# so that is_class can be used to determine whether a node is a Graph2D
+
+# so that is_class can be used to determine whether a node is a DiGraph2D
 func is_class(type):  # override
 	return type == 'DiGraph2D' or .is_class(type)
+
 func get_class():  # override
 	return 'DiGraph2D'
 
@@ -110,7 +101,7 @@ func _draw(): # override
 
 	for n in _nodes:
 		draw_circle(n, 7.0, Color('#ff000000'))
-		draw_circle(n, 5.0, Color('#ff9999ff'))
+		draw_circle(n, 5.0, node_color)
 
 func _has_edge(from: int, to: int) -> bool:
 	var adj = _adjacency[from]
@@ -120,8 +111,7 @@ func _has_edge(from: int, to: int) -> bool:
 	return false
 
 func _draw_edge(a: Vector2, b: Vector2, bidirectional: bool):
-	var color = Color(1, 1, 0.5, 0.2)
-	draw_line(a, b, color, 2.0, true)  # line width, AA
+	draw_line(a, b, edge_color, 2.0, true)  # line width, AA
 	var ab = b - a
 	var v = ab.normalized()
 	var arrow_width = 8
@@ -130,8 +120,8 @@ func _draw_edge(a: Vector2, b: Vector2, bidirectional: bool):
 		var arrow_top = a + 0.5 * ab
 		var arrow_bottom = arrow_top - arrow_length * v
 		var arrow_perp_offset = arrow_width * _perpendicular_vector(v)
-		draw_line(arrow_top, arrow_bottom + arrow_perp_offset, color, 2, true)
-		draw_line(arrow_top, arrow_bottom - arrow_perp_offset, color, 2, true)
+		draw_line(arrow_top, arrow_bottom + arrow_perp_offset, edge_color, 2, true)
+		draw_line(arrow_top, arrow_bottom - arrow_perp_offset, edge_color, 2, true)
 
 func _update_astar():
 	_astar = AStar2D.new()
@@ -202,6 +192,9 @@ func is_valid() -> bool:
 func num_nodes() -> int:
 	return _nodes.size()
 
+func get_node_positions() -> PoolVector2Array:
+	return _nodes
+
 func get_node_pos(index: int) -> Vector2:
 	return _nodes[index]
 
@@ -237,7 +230,7 @@ func get_shortest_path(from: Vector2, to: Vector2) -> PathAlongGraph:
 		_astar.remove_point(from_on_graph.id)
 		return path
 
-	path.add(from_on_graph.pos)
+	path.append(from_on_graph.pos)
 
 	if not _point_directly_reachable(from_on_graph, to_on_graph.pos):
 		var id_path = _astar.get_id_path(from_on_graph.id, to_on_graph.id)
@@ -245,9 +238,9 @@ func get_shortest_path(from: Vector2, to: Vector2) -> PathAlongGraph:
 			if id == from_on_graph.id or id == to_on_graph.id:
 				continue
 			else:
-				path.add(_nodes[id], id)
+				path.append(_nodes[id], id)
 
-	path.add(to_on_graph.pos)
+	path.append(to_on_graph.pos)
 
 	_astar.remove_point(from_on_graph.id)
 	_astar.remove_point(to_on_graph.id)
