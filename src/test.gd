@@ -5,15 +5,11 @@ var DiGraph2D = preload("DiGraph2D.gd")
 func _init():
     print('testing graph node')
 
-    test_bug()
-    #quit()
-    #return
-
-    #test_instances_independent()
-    #test_basics()
-    #test_editing()
-    #test_loading_and_saving()
-    #test_path_finding()
+    test_instances_independent()
+    test_basics()
+    test_editing()
+    test_loading_and_saving()
+    test_path_finding()
 
     quit()
 
@@ -271,6 +267,12 @@ func test_path_finding():
     assert(closest.point == Vector2(0.5, 0.0))
     assert((closest.a == 0 and closest.b == 1) or (closest.a == 1 and closest.b == 0))
 
+    # points directly above existing nodes of the graph
+    path = graph.get_shortest_path(Vector2(1, 1), Vector2(0, 0))
+    assert(graph.is_valid())
+    assert(vectors_equal(path.points, [Vector2(1, 1), Vector2(1, 0), Vector2(0, 0)]))
+    assert(path.ids == [-1, 1, -1])
+
     # if directly connected: go straight for the destination
     path = graph.get_shortest_path(Vector2(0.4, -0.4), Vector2(0.1, -0.1))
     assert(graph.is_valid())
@@ -283,7 +285,6 @@ func test_path_finding():
     var expected = [Vector2(0.1, -0.1), Vector2(0, 0), Vector2(1, 0), Vector2(0.5, -0.5), Vector2(0.4, -0.4)]
     assert(vectors_equal(path.points, expected))
     assert(path.ids == [-1, 0, 1, 3, -1])
-    #print(graph._astar_adjacency(graph._astar))
 
     # directly connected (bidirectional edge)
     path = graph.get_shortest_path(Vector2(0.1, 0.1), Vector2(0.9, 0.1))
@@ -301,15 +302,11 @@ func test_path_finding():
     assert(vectors_equal(path.points, [Vector2(1, 0.2), Vector2(1, 0.9)]))
     assert(path.ids == [-1, -1])
 
-    print('bad search')
-    print('stuff')
+    # another no-path example but with the projected points connected to different edges
     path = graph.get_shortest_path(Vector2(1.1, 0.9), Vector2(1.9, 0.1))
-    print('bad search finished')
-    #assert(graph.is_valid())
-    #assert(vectors_equal(path.points, [Vector2(1, 0.9), Vector2(1.9, 0)]))
-    #assert(path.ids == [-1, -1])
-
-    
+    assert(graph.is_valid())
+    assert(vectors_equal(path.points, [Vector2(1, 0.9), Vector2(1.9, 0)]))
+    assert(path.ids == [-1, -1])
 
 
     graph.queue_free()  # currently required to avoid 'ObjectDB Instances still exist' (which could be a Godot bug)

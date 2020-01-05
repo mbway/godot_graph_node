@@ -10,8 +10,7 @@ var _adjacency := Array()
 
 # cached data constructed using the above data
 
-# TODO: use AStar2D once added to godot
-var _astar := AStar.new()
+var _astar := AStar2D.new()
 # the node indices of the line segments that make up the graph (bidirectional lines *not* included twice)
 # this is to make projecting points onto the graph faster because each bidirectional edge is only considered once
 var _line_segments := PoolIntArray()  # strided: [a, b, a, b, ...]
@@ -135,11 +134,10 @@ func _draw_edge(a: Vector2, b: Vector2, bidirectional: bool):
 		draw_line(arrow_top, arrow_bottom - arrow_perp_offset, color, 2, true)
 
 func _update_astar():
-	_astar = AStar.new()
+	_astar = AStar2D.new()
 
 	for i in range(_nodes.size()):
-		var n = _nodes[i]
-		_astar.add_point(i, Vector3(n.x, n.y, 0), 1.0) # id, position, weight_scale
+		_astar.add_point(i, _nodes[i], 1.0) # id, position, weight_scale
 
 	# need to add all nodes before adding edges
 	for i in range(_nodes.size()):
@@ -157,15 +155,13 @@ func _update_line_segments():
 				_line_segments.append(i)
 				_line_segments.append(j)
 
-
 func _project_and_add(point: Vector2) -> Object: # Optional<Vertex>
 	var point_on_graph = get_closest_point_on_graph(point)
 	if point_on_graph == null:
 		return null
 	var id = _astar.get_available_point_id()
-	_astar.add_point(id, Vector3(point_on_graph.point.x, point_on_graph.point.y, 0), 1.0)
+	_astar.add_point(id, point_on_graph.point, 1.0)
 	var bidirectional = _has_edge(point_on_graph.b, point_on_graph.a)
-	#var bidirectional = true
 	_astar.connect_points(point_on_graph.a, id, bidirectional)
 	_astar.connect_points(id, point_on_graph.b, bidirectional)
 	return Vertex.new(id, point_on_graph.point)
@@ -244,11 +240,7 @@ func get_shortest_path(from: Vector2, to: Vector2) -> PathAlongGraph:
 	path.add(from_on_graph.pos)
 
 	if not _point_directly_reachable(from_on_graph, to_on_graph.pos):
-		print(_astar_adjacency(_astar))
-		#print(from_on_graph.id, to_on_graph.id)
-		print('before search')
 		var id_path = _astar.get_id_path(from_on_graph.id, to_on_graph.id)
-		print('after search')
 		for id in id_path:
 			if id == from_on_graph.id or id == to_on_graph.id:
 				continue
@@ -337,7 +329,7 @@ func add_edge(from: int, to: int, bidirectional: bool) -> void:
 		return
 	elif not _valid_ids(from, to):
 		printerr("invalid edge ids: ", from, ", ", to)
-		return 
+		return
 
 	var changed = _add_edge(from, to)
 	if bidirectional:
@@ -349,7 +341,7 @@ func add_edge(from: int, to: int, bidirectional: bool) -> void:
 func remove_edge(from: int, to: int, bidirectional: bool) -> void:
 	if not _valid_ids(from, to):
 		printerr("invalid edge ids: ", from, ", ", to)
-		return 
+		return
 	var adj = _adjacency[from]
 	for i in range(len(adj)):
 		if adj[i] == to:
@@ -377,25 +369,3 @@ static func _perpendicular_vector(vec: Vector2) -> Vector2:
 
 static func _in_game() -> bool:
 	return not Engine.editor_hint
-
-static func _astar_adjacency(astar: AStar) -> Dictionary:
-	var out = {}
-	for i in range(astar.get_available_point_id()):
-		if(astar.has_point(i)):
-			out[i] = {
-				"pos": astar.get_point_position(i), 
-				"adj": Array(astar.get_point_connections(i))
-			}
-	return out
-
-static func _astar_from_adjacency(adjacency: Dictionary) -> AStar:
-	var astar = AStar.new()
-	for id in adjacency.keys():
-		var node = adjacency[id]
-		astar.add_point(id, node['pos'], 1.0)
-	# add all nodes before adding edges
-	for id in adjacency.keys():
-		var node = adjacency[id]
-		for other_id in node['adj']:
-			astar.connect_points(id, other_id, false)
-	return astar
