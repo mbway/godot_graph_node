@@ -1,0 +1,5 @@
+*.swp
+.import
+
+# since this is an addon, let each project create its own import files
+assets/*.import

@@ -1,0 +1,21 @@
+[gd_scene load_steps=3 format=2]
+
+[ext_resource path="res://addons/graph_node/src/DiGraph2D.gd" type="Script" id=1]
+[ext_resource path="res://addons/graph_node/assets/icon.png" type="Texture" id=2]
+
+[node name="Example" type="Node2D"]
+
+[node name="DiGraph2D" type="Node2D" parent="."]
+script = ExtResource( 1 )
+__meta__ = {
+"_editor_icon": ExtResource( 2 )
+}
+_stored_adjacency = "160.000000 104.000000
+272.000000 48.000000 2
+488.000000 -0.000000 1 3 7
+504.000000 224.000000 2 4
+296.000000 232.000000 3
+248.000000 296.000000
+448.000000 376.000000 1
+736.000000 104.000000 2"
+

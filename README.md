@@ -1,0 +1,1 @@
+A digraph node for path-finding in a 2D Godot scene

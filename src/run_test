@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+godot --script test.gd
+
