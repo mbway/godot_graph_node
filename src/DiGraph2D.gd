@@ -57,7 +57,7 @@ func get_class():  # override
 func _load_saved_state():
 	var new_nodes = PoolVector2Array()
 	var new_adjacency = Array()
-	var lines = _stored_adjacency.split('\n', false) # delimiter, allow_empty
+	var lines = _stored_adjacency.replace("\r\n", "\n").split('\n', false) # delimiter, allow_empty
 	for line in lines:
 		var words = line.split(' ', false)
 
