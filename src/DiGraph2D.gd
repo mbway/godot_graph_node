@@ -263,6 +263,8 @@ func _valid_ids(id_a: int, id_b: int) -> bool:
 
 
 func _on_change(save_changes: bool = true) -> void:
+	if position != Vector2(0, 0):
+		_reset_origin()
 	_update_astar()
 	_update_line_segments()
 	assert(is_valid())
@@ -354,6 +356,13 @@ func closest_node_to(pos: Vector2, max_radius_sq: float = INF) -> int:
 			min_index = i
 			min_distance_sq = distance_sq
 	return min_index
+
+func _reset_origin() -> void:
+	for i in range(_nodes.size()):
+		_nodes.set(i, _nodes[i] + position)
+	position.x = 0
+	position.y = 0
+
 
 # Utils
 
